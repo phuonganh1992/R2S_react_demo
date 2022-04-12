@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import CustomButton from "../components/CustomButton";
 import Input from "../components/Input";
 import majorService from "../services/majorService";
-import DefaultLayout from "./../container/DefaultLayout";
 
 const MajorEdit = () => {
   const [id, setId] = useState();
@@ -23,7 +22,7 @@ const MajorEdit = () => {
   }, [param.id]);
 
   const handleBack = () => {
-    navigate("/de/major");
+    navigate("/major");
   };
   const handleChange = (e) => {
     // ??? copy major

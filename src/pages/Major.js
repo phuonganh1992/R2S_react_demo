@@ -1,15 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import majorService from "../services/majorService";
+import { Button, Modal } from "react-bootstrap";
+import Input from "./../components/Input";
+import { toast } from "react-toastify";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 const Major = () => {
-  const navigate = useNavigate();
   const [majors, setmajors] = useState([]);
   const [message, setmessage] = useState();
+  const [showModal, setShowModal] = useState(false);
+  const formik = useFormik({
+    initialValues: {
+      id: 0,
+      name: "",
+    },
+    validationSchema: Yup.object({
+      id: Yup.number().required(),
+      name: Yup.string().required("required").min(5, ">=5 characters"),
+    }),
+    onSubmit: (value) => {
+      handleFormSubmit(value);
+    },
+  });
+
+  const handleModalClose = () => setShowModal(false);
+  const handleModalShow = () => setShowModal(true);
 
   const showEditPage = (e, id) => {
     e.preventDefault();
-    navigate(`/de/major/${id}`);
+    handleModalShow();
+
+    if (id === 0) {
+      formik.resetForm();
+      handleModalShow();
+    } else {
+      majorService.get(id).then((res) => {
+        formik.setValues(res.data);
+      });
+    }
   };
 
   useEffect(() => {
@@ -19,17 +48,44 @@ const Major = () => {
   }, []);
 
   const loadData = () => {
-    majorService.list().then((res) => res.data);
+    majorService.list().then((res) => {
+      setmajors(res.data);
+    });
   };
 
   const handleDelete = (e, id) => {
-    console.log(id);
     e.preventDefault();
     majorService.delete(id).then((res) => {
       if (res.errorCode === 0) {
         loadData();
+        toast.success("Delete successfully");
       }
     });
+  };
+
+  const handleFormSubmit = (data) => {
+    if (data.id === 0) {
+      majorService.add(data).then((res) => {
+        if (res.errorCode === 0) {
+          handleModalClose();
+          toast.success("A new major added!");
+          loadData();
+        } else {
+          setmessage(res.message);
+          toast.error(res.message);
+        }
+      });
+    } else {
+      majorService.update(data.id, data).then((res) => {
+        if (res.errorCode === 0) {
+          loadData();
+          handleModalClose();
+          toast.success("Update successfull");
+        } else {
+          toast.error(res.message);
+        }
+      });
+    }
   };
 
   return (
@@ -87,53 +143,44 @@ const Major = () => {
         </div>
       </div>
 
-      <div
-        className="modal fade"
-        id="editModal"
-        tabIndex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
+      <Modal
+        show={showModal}
+        onHide={handleModalClose}
+        backdrop="static"
+        keyboard={false}
       >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="exampleModalLabel">
-                New Major
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <form>
-                <div className="form-group row">
-                  <label htmlFor="txtMajor" className="col-sm-3 col-form-label">
-                    Major name
-                  </label>
-                  <div className="col-sm-9">
-                    <input type="text" className="form-control" id="txtMajor" />
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button type="button" className="btn btn-primary">
-                Save changes
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Major
+            <small className="text-muted">
+              {formik.values.id > 0 ? "edit" : "new"}
+            </small>
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <form>
+            <Input
+              type="text"
+              label="Major name"
+              frmField={formik.getFieldProps("name")}
+              err={formik.touched.name && formik.errors.name}
+              errMessage={formik.errors.name}
+            />
+          </form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalClose}>
+            Close
+          </Button>
+          <Button
+            variant="primary"
+            disabled={!formik.dirty || !formik.isValid}
+            onClick={formik.handleSubmit}
+          >
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };

@@ -9,7 +9,7 @@ const login = (username, password) => {
     password,
   };
 
-  return api.post(api.url.login, data).then((res) => res.data);
+  return api.post(api.url.login, data);
 };
 
 const userService = {

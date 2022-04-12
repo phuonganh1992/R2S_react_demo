@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import Input from "../components/Input";
 import userService from "../services/userService";
+import ActionTypes from "../store/reducers/actions";
+import { useNavigate } from "react-router-dom";
 
 const Login = (props) => {
+  let navigate = useNavigate();
   const [message, setMessage] = useState("");
+  const dispatch = useDispatch();
+
   const usernameRef = React.useRef();
   const passwordRef = React.useRef();
+
+  const handleLoginAction = (token, userInfo) => {
+    dispatch({
+      type: ActionTypes.LOGIN_USER,
+      token: token,
+      currentUser: userInfo,
+    });
+  };
 
   const formSubmitHandler = (e) => {
     e.preventDefault();
@@ -18,16 +32,10 @@ const Login = (props) => {
         setMessage(res.message);
       } else {
         setMessage(res.message);
+        handleLoginAction(res.data.accessToken, res.data);
+        navigate("/home");
       }
     });
-    // if (username === "admin") {
-    //     setMessage({message: "Good"})
-    //     setMessage("Good!")
-    // } else {
-    //     setMessage({message: "bad"})
-    //     setMessage("Bad!")
-    // }
-    // console.log(message)
   };
   useEffect(() => {
     usernameRef.current.focus();
@@ -61,13 +69,6 @@ const Login = (props) => {
                     id="txtPassword"
                     type="password"
                     labelSize="3"
-                  ></Input>
-                  <Input
-                    label="Note"
-                    id="txtNote"
-                    type="password"
-                    labelSize="3"
-                    rows="3"
                   ></Input>
                   <div className="row">
                     <div className="offset-sm-3 col-auto">

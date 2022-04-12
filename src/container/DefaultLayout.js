@@ -1,22 +1,26 @@
-import React, {useEffect, useState} from "react";
+import React from "react";
 import Header from "./Header";
-import Home from "../pages/Home";
-import {Routes, Route} from "react-router-dom";
-import Login from "../pages/Login";
-import Major from "../pages/Major";
+import { Routes, Route, Navigate } from "react-router-dom";
 import myRoutes from "../my-routes";
+import { useSelector } from "react-redux";
 
 const DefaultLayout = () => {
-    return (
+  const isLoggerIn = useSelector((state) => state.auth.isLoggerIn);
+  return (
+    <>
+      {!isLoggerIn ? (
+        <Navigate to="/login" />
+      ) : (
         <>
-            <Header/>
-            <Routes>
-                {myRoutes.map((route, idx) => (
-                    <Route key={idx} path={route.path} element={route.component}/>
-                ))}
-            </Routes>
+          <Header />
+          <Routes>
+            {myRoutes.map((route, idx) => (
+              <Route key={idx} path={route.path} element={route.component} />
+            ))}
+          </Routes>
         </>
-
-    );
-}
+      )}
+    </>
+  );
+};
 export default DefaultLayout;
