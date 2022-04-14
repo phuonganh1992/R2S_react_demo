@@ -1,4 +1,5 @@
 import axios from "axios";
+import { hideLoading, showLoading } from "react-redux-loading-bar";
 import store from "./../store/index";
 
 const url = {
@@ -22,13 +23,17 @@ instance.interceptors.request.use((request) => {
   if (state.auth.token) {
     request.headers.Authorization = `Bearer ${state.auth.token}`;
   }
-  console.log("before sending to server", request);
+  store.dispatch(showLoading());
   return request;
 });
 instance.interceptors.response.use(
-  (res) => res.data,
+  (res) => {
+    setTimeout(() => store.dispatch(hideLoading()), 100);
+    return res.data;
+  },
   (err) => {
     console.log(err);
+    setTimeout(() => store.dispatch(hideLoading()), 100);
     if (!err.response) {
       window.location.href = "/no-internet";
     } else {

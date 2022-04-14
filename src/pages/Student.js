@@ -23,7 +23,7 @@ const Student = () => {
       gender: 0,
       phone: "",
       email: "",
-      majorId: "",
+      majorId: 0,
     },
     validationSchema: Yup.object({
       stuId: Yup.string().required("required"),
@@ -34,13 +34,14 @@ const Student = () => {
         .required("required")
         .matches(/^[0-9]{9}/, "need match pattern 9 digits"),
       email: Yup.string().required("required").email("email format"),
-      majorId: Yup.string().required("required"),
+      majorId: Yup.number().min(1, "select major"),
     }),
     onSubmit: (value) => {
       handleFormSubmit(value);
     },
   });
   const handleFormSubmit = (data) => {
+    console.log(data);
     if (data.id === 0) {
       studentService.add(data).then((res) => {
         if (res.errorCode === 0) {
@@ -247,9 +248,9 @@ const Student = () => {
           <form>
             <Input
               type="text"
-              label="Instructor Id"
+              label="Student Id"
               frmField={formik.getFieldProps("stuId")}
-              err={formik.touched.code && formik.errors.code}
+              err={formik.touched.stuId && formik.errors.stuId}
               errMessage={formik.errors.code}
             />
             <div className="row">
@@ -287,6 +288,13 @@ const Student = () => {
               label="Gender"
               name="gender"
               isInline={true}
+              onChange={(e) =>
+                formik.setFieldValue(
+                  e.target.name,
+                  Number(e.target.value).valueOf()
+                )
+              }
+              selectedValue={formik.values.gender}
             />
 
             <Input
@@ -303,7 +311,23 @@ const Student = () => {
               err={formik.touched.email && formik.errors.email}
               errMessage={formik.errors.email}
             />
-            <Select label="Major" id="major" values={majors} name="major" />
+            <Select
+              label="Major"
+              id="major"
+              values={majors}
+              name="majorId"
+              onChange={(e) => {
+                formik.setTouched({ majorId: true });
+                formik.setFieldValue(
+                  e.target.name,
+                  Number(e.target.value).valueOf()
+                );
+                console.log(e.target.value);
+              }}
+              selectedValue={formik.values.majorId}
+              err={formik.errors.majorId && formik.touched.majorId}
+              errMessage={formik.errors.majorId}
+            />
           </form>
         </Modal.Body>
         <Modal.Footer>

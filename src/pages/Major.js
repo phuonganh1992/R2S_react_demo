@@ -5,11 +5,13 @@ import Input from "./../components/Input";
 import { toast } from "react-toastify";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import CustomButton from "./../components/CustomButton";
 
 const Major = () => {
   const [majors, setmajors] = useState([]);
   const [message, setmessage] = useState();
   const [showModal, setShowModal] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(false);
   const formik = useFormik({
     initialValues: {
       id: 0,
@@ -64,8 +66,11 @@ const Major = () => {
   };
 
   const handleFormSubmit = (data) => {
+    setIsWaiting(true);
+
     if (data.id === 0) {
       majorService.add(data).then((res) => {
+        setIsWaiting(false);
         if (res.errorCode === 0) {
           handleModalClose();
           toast.success("A new major added!");
@@ -77,6 +82,7 @@ const Major = () => {
       });
     } else {
       majorService.update(data.id, data).then((res) => {
+        setIsWaiting(false);
         if (res.errorCode === 0) {
           loadData();
           handleModalClose();
@@ -165,6 +171,7 @@ const Major = () => {
               frmField={formik.getFieldProps("name")}
               err={formik.touched.name && formik.errors.name}
               errMessage={formik.errors.name}
+              labelSize={13}
             />
           </form>
         </Modal.Body>
@@ -172,13 +179,22 @@ const Major = () => {
           <Button variant="secondary" onClick={handleModalClose}>
             Close
           </Button>
-          <Button
+          {/* <Button
             variant="primary"
-            disabled={!formik.dirty || !formik.isValid}
+            disabled={!formik.dirty || !formik.isValid || isWaiting}
             onClick={formik.handleSubmit}
           >
             Save
-          </Button>
+          </Button> */}
+          <CustomButton
+            // type="submit"
+            color="primary"
+            disabled={!formik.dirty || !formik.isValid || isWaiting}
+            isLoading={isWaiting}
+            onClick={formik.handleSubmit}
+          >
+            Save
+          </CustomButton>
         </Modal.Footer>
       </Modal>
     </>

@@ -11,11 +11,12 @@ const Select = (props) => {
     frmField,
     err,
     errMessage,
+    selectedValue,
     ...others
   } = props;
 
   const labelClass = `col-sm-${labelSize ? labelSize : 3} col-form-label`;
-  const inputClass = `form-control ${err ? "is-invalid" : ""}`;
+  const inputClass = `col-sm form-select ${err ? "is-invalid" : ""}`;
 
   return (
     <>
@@ -23,12 +24,23 @@ const Select = (props) => {
         <label htmlFor={`sel-${id}`} className={labelClass}>
           {label}
         </label>
-        <select className="col-sm form-select" name={name} id={`sel-${id}`}>
-          <option value="">---------------</option>
-          {values.map((value, idx) => (
-            <option value={value.id}>{value.name}</option>
-          ))}
-        </select>
+        <div className="col-sm">
+          <select
+            name={name}
+            id={`sel-${id}`}
+            defaultValue={selectedValue}
+            {...others}
+            className={inputClass}
+          >
+            <option value="">---------------</option>
+            {values.map((value, idx) => (
+              <option key={idx} value={value.id}>
+                {value.name}
+              </option>
+            ))}
+          </select>
+          {err ? <div className="invalid-feedback">{errMessage}</div> : ""}
+        </div>
       </div>
     </>
   );
