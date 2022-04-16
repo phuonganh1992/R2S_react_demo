@@ -1,3 +1,12 @@
+/**
+ * Validate number between min and max
+ * @param {Number} min
+ * @param {Number} max
+ * @param {Boolean} isRequired
+ *
+ * @returns {(Error|TypeError|String)} returns Error or null
+ */
+
 const numberBetween = (min, max, isRequired = false) => {
   return (props, propName, componentName) => {
     const propValue = props[propName];

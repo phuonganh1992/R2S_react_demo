@@ -4,8 +4,10 @@ import Input from "../components/Input";
 import userService from "../services/userService";
 import ActionTypes from "../store/reducers/actions";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const Login = (props) => {
+  const { t } = useTranslation();
   let navigate = useNavigate();
   const [message, setMessage] = useState("");
   const dispatch = useDispatch();
@@ -49,7 +51,8 @@ const Login = (props) => {
             <div className="card bg-primary">
               <div className="card-header text-white">
                 <h4 className="card-title mb-0">
-                  <i className="bi-grid-3x3-gap-fill"></i> Login
+                  <i className="bi-grid-3x3-gap-fill"></i>
+                  {t("loginSystem")}
                 </h4>
               </div>
               <div className="card-body bg-white rounded-bottom">
@@ -57,7 +60,7 @@ const Login = (props) => {
                 <form onSubmit={formSubmitHandler}>
                   <Input
                     inputRef={usernameRef}
-                    label="Username"
+                    label={t("username")}
                     id="txtUsername"
                     type="text"
                     labelSize="3"
@@ -65,7 +68,7 @@ const Login = (props) => {
                   ></Input>
                   <Input
                     inputRef={passwordRef}
-                    label="Password"
+                    label={t("password")}
                     id="txtPassword"
                     type="password"
                     labelSize="3"
@@ -73,7 +76,7 @@ const Login = (props) => {
                   <div className="row">
                     <div className="offset-sm-3 col-auto">
                       <button type="submit" className="btn btn-primary">
-                        Sign in
+                        {t("signIn")}
                       </button>
                     </div>
                   </div>

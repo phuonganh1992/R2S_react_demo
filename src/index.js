@@ -13,6 +13,9 @@ import { toast } from "react-toastify";
 import { Provider } from "react-redux";
 import store from "./store";
 
+import "./i18n";
+import "flag-icon-css/css/flag-icons.css";
+
 toast.configure({
   autoClose: 5000,
   draggable: true,

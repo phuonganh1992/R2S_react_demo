@@ -1,12 +1,13 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const Home = () => {
-  return(
-      <div className="container">
-          <h1 className="text-center text-primary mt-5">Wellcome to Admin Site!</h1>
-
-      </div>
+  const { t } = useTranslation();
+  return (
+    <div className="container">
+      <h1 className="text-center text-primary mt-5">{t("welcome")}</h1>
+    </div>
   );
-}
+};
 
 export default Home;
