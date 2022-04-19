@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import studentService from "./../services/studentService";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { Modal } from "react-bootstrap";
+import { Col, Modal, Row } from "react-bootstrap";
 import Input from "./../components/Input";
 import InputRadio from "./../components/InputRadio";
 import { Button } from "react-bootstrap";
 import Select from "../components/Select";
 import majorService from "./../services/majorService";
+import Utils from "./../helpers/utils";
 
 const Student = () => {
+  const defaultImgUrl =
+    "https://restfulapi.dnd-group.net/public/photo-icon.png";
   const [students, setStudents] = useState([]);
   const [majors, setMajors] = useState([]);
+  const [imagePreview, setImagePreview] = useState(defaultImgUrl);
 
   const formik = useFormik({
     initialValues: {
@@ -24,6 +28,7 @@ const Student = () => {
       phone: "",
       email: "",
       majorId: 0,
+      avatar: undefined,
     },
     validationSchema: Yup.object({
       stuId: Yup.string().required("required"),
@@ -40,6 +45,14 @@ const Student = () => {
       handleFormSubmit(value);
     },
   });
+  const inputFileRef = useRef();
+  const handleChangeImage = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      console.log(URL.createObjectURL(e.target.files[0]));
+      setImagePreview(URL.createObjectURL(e.target.files[0]));
+      formik.setFieldValue("avatar", e.target.files[0]);
+    }
+  };
   const handleFormSubmit = (data) => {
     console.log(data);
     if (data.id === 0) {
@@ -71,13 +84,25 @@ const Student = () => {
 
   const handleModalClose = () => setShowModal(false);
   const handleModalShow = () => setShowModal(true);
+  const downloadImage = () => {
+    studentService.downloadAvatar(formik.values.id).then((res) => {
+      if (res.size > 0) Utils.downloadFile(`${formik.values.stuId}.zip`, res);
+      else toast.warning("No avatar to download");
+    });
+  };
   const showEditPage = (e, id) => {
     e.preventDefault();
     handleModalShow();
     if (id === 0) {
+      setImagePreview(defaultImgUrl);
       formik.resetForm();
       handleModalShow();
     } else {
+      studentService.getAvatar(id).then((res) => {
+        console.log(res);
+        if (res.size > 0) setImagePreview(URL.createObjectURL(res));
+        else setImagePreview(defaultImgUrl);
+      });
       studentService.get(id).then((res) => {
         formik.setValues(res.data);
       });
@@ -245,90 +270,130 @@ const Student = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <form>
-            <Input
-              type="text"
-              label="Student Id"
-              frmField={formik.getFieldProps("stuId")}
-              err={formik.touched.stuId && formik.errors.stuId}
-              errMessage={formik.errors.code}
-            />
-            <div className="row">
-              <div className="col-sm-3">Fullname</div>
-              <div className="col-sm">
+          <Row>
+            <Col sm="4" className="text-center">
+              <img
+                src={imagePreview}
+                alt=""
+                className="img-thumbnail rounded-circle border-primary d-block"
+              ></img>
+              <input
+                type="file"
+                accept="image/*"
+                className="d-none"
+                ref={inputFileRef}
+                onChange={handleChangeImage}
+              />
+              <div className="mt-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => inputFileRef.current.click()}
+                >
+                  Change
+                </Button>
+
+                <Button
+                  variant="warning"
+                  size="sm"
+                  className="ms-1"
+                  onClick={downloadImage}
+                >
+                  Download
+                </Button>
+              </div>
+            </Col>
+            <Col sm>
+              <form>
+                <Input
+                  type="text"
+                  label="Student Id"
+                  frmField={formik.getFieldProps("stuId")}
+                  err={formik.touched.stuId && formik.errors.stuId}
+                  errMessage={formik.errors.code}
+                />
                 <div className="row">
+                  <div className="col-sm-3">Fullname</div>
                   <div className="col-sm">
-                    <Input
-                      type="text"
-                      label="lastName"
-                      isLabelHidden={true}
-                      frmField={formik.getFieldProps("lastName")}
-                      err={formik.touched.lastName && formik.errors.lastName}
-                      errMessage={formik.errors.lastName}
-                    />
-                  </div>
-                  <div className="col-sm">
-                    <Input
-                      type="text"
-                      label="firstName"
-                      isLabelHidden={true}
-                      frmField={formik.getFieldProps("firstName")}
-                      err={formik.touched.firstName && formik.errors.firstName}
-                      errMessage={formik.errors.firstName}
-                    />
+                    <div className="row">
+                      <div className="col-sm">
+                        <Input
+                          type="text"
+                          label="lastName"
+                          isLabelHidden={true}
+                          frmField={formik.getFieldProps("lastName")}
+                          err={
+                            formik.touched.lastName && formik.errors.lastName
+                          }
+                          errMessage={formik.errors.lastName}
+                        />
+                      </div>
+                      <div className="col-sm">
+                        <Input
+                          type="text"
+                          label="firstName"
+                          isLabelHidden={true}
+                          frmField={formik.getFieldProps("firstName")}
+                          err={
+                            formik.touched.firstName && formik.errors.firstName
+                          }
+                          errMessage={formik.errors.firstName}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <InputRadio
-              values={[
-                { id: 0, name: "male" },
-                { id: 1, name: "female" },
-              ]}
-              label="Gender"
-              name="gender"
-              isInline={true}
-              onChange={(e) =>
-                formik.setFieldValue(
-                  e.target.name,
-                  Number(e.target.value).valueOf()
-                )
-              }
-              selectedValue={formik.values.gender}
-            />
+                <InputRadio
+                  values={[
+                    { id: 0, name: "male" },
+                    { id: 1, name: "female" },
+                  ]}
+                  label="Gender"
+                  name="gender"
+                  isInline={true}
+                  onChange={(e) =>
+                    formik.setFieldValue(
+                      e.target.name,
+                      Number(e.target.value).valueOf()
+                    )
+                  }
+                  selectedValue={formik.values.gender}
+                />
 
-            <Input
-              type="tel"
-              label="Phone"
-              frmField={formik.getFieldProps("phone")}
-              err={formik.touched.phone && formik.errors.phone}
-              errMessage={formik.errors.phone}
-            />
-            <Input
-              type="email"
-              label="Email"
-              frmField={formik.getFieldProps("email")}
-              err={formik.touched.email && formik.errors.email}
-              errMessage={formik.errors.email}
-            />
-            <Select
-              label="Major"
-              id="major"
-              values={majors}
-              name="majorId"
-              onChange={(e) => {
-                formik.setTouched({ majorId: true });
-                formik.setFieldValue(
-                  e.target.name,
-                  Number(e.target.value).valueOf()
-                );
-                console.log(e.target.value);
-              }}
-              selectedValue={formik.values.majorId}
-              err={formik.errors.majorId && formik.touched.majorId}
-              errMessage={formik.errors.majorId}
-            />
-          </form>
+                <Input
+                  type="tel"
+                  label="Phone"
+                  frmField={formik.getFieldProps("phone")}
+                  err={formik.touched.phone && formik.errors.phone}
+                  errMessage={formik.errors.phone}
+                />
+                <Input
+                  type="email"
+                  label="Email"
+                  frmField={formik.getFieldProps("email")}
+                  err={formik.touched.email && formik.errors.email}
+                  errMessage={formik.errors.email}
+                />
+                <Select
+                  label="Major"
+                  id="major"
+                  values={majors}
+                  name="majorId"
+                  onChange={(e) => {
+                    formik.setTouched({ majorId: true });
+                    formik.setFieldValue(
+                      e.target.name,
+                      Number(e.target.value).valueOf()
+                    );
+                    console.log(e.target.value);
+                  }}
+                  selectedValue={formik.values.majorId}
+                  err={formik.errors.majorId && formik.touched.majorId}
+                  errMessage={formik.errors.majorId}
+                />
+              </form>
+            </Col>
+          </Row>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleModalClose}>
